@@ -214,22 +214,39 @@
     // Firebase URL base
     const FIREBASE_BASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com/codigos";
     
-    // Telegram Bot
-    const TELEGRAM_TOKEN = "7891823719:AAH..."; // Tu token
-    const TELEGRAM_CHAT_ID = "123456789";       // Tu Chat ID
+    // Telegram Bot (Asegúrate de colocar tu Token y Chat ID correctos)
+    const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8"; // Tu token
+    const TELEGRAM_CHAT_ID = "6449886096";       // Tu Chat ID
 
     let reservedItems = [];
     let currentCategory = "";
 
-    function login() {
+    async function sendTelegramAlert(text) {
+        if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("AAH...")) return;
+        try {
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: text,
+                    parse_mode: 'Markdown'
+                })
+            });
+        } catch(e) { console.error("Error al enviar alerta a Telegram", e); }
+    }
+
+    async function login() {
         const inputKey = document.getElementById('access-key').value.trim();
         const status = document.getElementById('login-status');
 
         if (inputKey === CLAVE_ADMIN) {
             document.getElementById('admin-panel').classList.remove('hidden');
+            await sendTelegramAlert("👑 *Aviso:* Se ha iniciado sesión como *Administrador* en la app.");
             showMainScreen();
         } else if (inputKey === CLAVE_USUARIO) {
             document.getElementById('admin-panel').classList.add('hidden');
+            await sendTelegramAlert("🔓 *Aviso:* Un usuario ha iniciado sesión en la app de códigos.");
             showMainScreen();
         } else {
             showStatus(status, "Clave incorrecta", "error");
@@ -258,13 +275,33 @@
     async function fetchCategoryCount(cat, elementId) {
         try {
             const catKey = getCatKey(cat);
-            const res = await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`);
-            const data = await res.json();
+            // Intenta leer por categoría específica
+            let res = await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`);
+            let data = await res.json();
+            
+            // Si la categoría específica está vacía, revisa si hay una lista general en la raíz de /codigos
+            if (!data) {
+                const rootRes = await fetch(`${FIREBASE_BASE_URL}.json`);
+                const rootData = await rootRes.json();
+                if (rootData && typeof rootData === 'object') {
+                    // Filtrar claves que no correspondan a carpetas creadas
+                    const keys = Object.keys(rootData).filter(k => k !== 'occ_baja' && k !== 'occ_alta' && k !== 'oriental');
+                    if (cat === "Occ. Baja" && keys.length > 0) {
+                        data = {};
+                        keys.forEach(k => data[k] = rootData[k]);
+                    }
+                }
+            }
+
             const count = data ? Object.keys(data).length : 0;
-            document.getElementById(elementId).textContent = count;
+            if (elementId && document.getElementById(elementId)) {
+                document.getElementById(elementId).textContent = count;
+            }
             return data ? Object.keys(data).map(k => ({ id: k, value: data[k] })) : [];
         } catch (e) {
-            document.getElementById(elementId).textContent = "0";
+            if (elementId && document.getElementById(elementId)) {
+                document.getElementById(elementId).textContent = "0";
+            }
             return [];
         }
     }
@@ -316,22 +353,15 @@
             const item = reservedItems[i];
             messageText += `Código ${i + 1}: \`${item.value}\`\n`;
 
-            // Borrar de Firebase
-            await fetch(`${FIREBASE_BASE_URL}/${catKey}/${item.id}.json`, { method: 'DELETE' });
+            // Elimina el código de la categoría o de la raíz según corresponda
+            let deleteRes = await fetch(`${FIREBASE_BASE_URL}/${catKey}/${item.id}.json`, { method: 'DELETE' });
+            if (!deleteRes.ok) {
+                await fetch(`${FIREBASE_BASE_URL}/${item.id}.json`, { method: 'DELETE' });
+            }
         }
 
-        // 1. Enviar por Telegram
-        try {
-            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: messageText,
-                    parse_mode: 'Markdown'
-                })
-            });
-        } catch(e) { console.error("Error Telegram", e); }
+        // 1. Enviar detalle del código por Telegram
+        await sendTelegramAlert(messageText);
 
         // 2. Abrir WhatsApp
         const cleanMsg = encodeURIComponent(messageText.replace(/\*/g, '').replace(/`/g, ''));
