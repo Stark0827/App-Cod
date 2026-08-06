@@ -1,514 +1,280 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestor de Códigos Privado</title>
-
-  <!-- Configuración PWA (Instalable en Celulares) -->
-  <meta name="theme-color" content="#17a2b8">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Códigos App">
-  <link rel="manifest" href="data:application/manifest+json,{
-    \"name\": \"Gestor de Códigos Privado\",
-    \"short_name\": \"CódigosApp\",
-    \"start_url\": \".\",
-    \"display\": \"standalone\",
-    \"background_color\": \"#f4f6f9\",
-    \"theme_color\": \"#17a2b8\",
-    \"icons\": [{
-      \"src\": \"https://cdn-icons-png.flaticon.com/512/0/191.png\",
-      \"sizes\": \"512x512\",
-      \"type\": \"image/png\"
-    }]
-  }">
-
-  <style>
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background-color: #f4f6f9; 
-      display: flex; 
-      justify-content: center; 
-      padding: 15px; 
-      margin: 0;
-    }
-    .card { 
-      background: white; 
-      padding: 20px; 
-      border-radius: 16px; 
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
-      width: 100%; 
-      max-width: 480px; 
-    }
-    h2 { margin-top: 0; color: #333; text-align: center; font-size: 20px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Códigos Privado</title>
     
-    input[type="password"], textarea, select, input[type="number"] { 
-      width: 100%; 
-      padding: 12px; 
-      border: 1px solid #ccc; 
-      border-radius: 8px; 
-      box-sizing: border-box; 
-      margin-top: 8px;
-      font-size: 14px;
-    }
-    
-    button { 
-      width: 100%; 
-      padding: 12px; 
-      margin-top: 10px; 
-      border: none; 
-      border-radius: 8px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      transition: 0.2s; 
-    }
-    .btn-login { background: #17a2b8; color: white; font-size: 16px; }
-    .btn-add { background: #28a745; color: white; }
-    
-    .counters-container {
-      display: flex;
-      gap: 6px;
-      margin-top: 15px;
-    }
-    .counter-badge {
-      flex: 1;
-      padding: 8px 2px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: bold;
-      font-size: 11px;
-    }
-    .badge-baja { background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
-    .badge-alta { background: #f3e5f5; color: #4a148c; border: 1px solid #e1bee7; }
-    .badge-oriental { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+    <!-- Configuración PWA -->
+    <link rel="manifest" href="data:application/manifest+json,{
+        \"name\": \"Gestor de Códigos\",
+        \"short_name\": \"Códigos\",
+        \"start_url\": \".\",
+        \"display\": \"standalone\",
+        \"background_color\": \"#f4f6f9\",
+        \"theme_color\": \"#007bff\",
+        \"icons\": [{
+            \"src\": \"https://cdn-icons-png.flaticon.com/512/0/191.png\",
+            \"sizes\": \"512x512\",
+            \"type\": \"image/png\"
+        }]
+    }">
+    <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-    .selector-cantidad {
-      margin-top: 15px;
-      background: #f8f9fa;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #e9ecef;
-    }
-    .selector-cantidad label {
-      font-size: 13px;
-      font-weight: bold;
-      color: #495057;
-    }
-
-    .btn-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .btn-group-row {
-      display: flex;
-      gap: 8px;
-    }
-    .btn-get-baja { background: #007bff; color: white; font-size: 14px; padding: 12px; flex: 1; }
-    .btn-get-alta { background: #6f42c1; color: white; font-size: 14px; padding: 12px; flex: 1; }
-    .btn-get-oriental { background: #28a745; color: white; font-size: 14px; padding: 12px; width: 100%; }
-
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      width: 100%;
-      margin-top: 10px;
-    }
-    .btn-copy { 
-      background: #17a2b8; 
-      color: white; 
-      padding: 10px; 
-      font-size: 14px; 
-      margin-top: 0;
-    }
-    .btn-cancel {
-      background: #6c757d;
-      color: white;
-      padding: 8px;
-      font-size: 13px;
-      margin-top: 0;
-    }
-
-    .result-container { 
-      background: #e9ecef; 
-      padding: 12px 15px; 
-      border-radius: 8px; 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 15px; 
-      border: 2px dashed #6c757d;
-      min-height: 45px;
-    }
-    .result-text {
-      font-size: 14px; 
-      font-weight: bold; 
-      color: #212529;
-      text-align: center;
-    }
-
-    .pwa-banner {
-      background: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      margin-bottom: 15px;
-      display: none;
-      text-align: center;
-    }
-
-    .update-notification {
-      background: #d4edda;
-      border: 1px solid #c3e6cb;
-      color: #155724;
-      padding: 8px;
-      border-radius: 8px;
-      font-size: 12px;
-      margin-bottom: 15px;
-      display: none;
-      text-align: center;
-      font-weight: bold;
-    }
-    
-    details {
-      margin-top: 25px;
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      padding: 10px 15px;
-    }
-    summary { font-weight: bold; color: #495057; cursor: pointer; }
-    ul { list-style: none; padding: 0; margin-top: 15px; max-height: 200px; overflow-y: auto; }
-    li { padding: 8px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 12px; }
-    .used { text-decoration: line-through; color: #a0a0a0; background-color: #e9ecef; }
-
-    #appContent, #adminSection { display: none; }
-  </style>
-
-  <!-- Módulos de Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAthEhw8Dsr5YfVnePRtN3t08PAbbFum0c",
-      authDomain: "base-de-datos-codigos-c1bb1.firebaseapp.com",
-      databaseURL: "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com",
-      projectId: "base-de-datos-codigos-c1bb1",
-      storageBucket: "base-de-datos-codigos-c1bb1.firebasestorage.app",
-      messagingSenderId: "687756320508",
-      appId: "1:687756320508:web:afcb16216b75267da28179",
-      measurementId: "G-0ZYNH84Q2Q"
-    };
-
-    // 🔑 Credenciales
-    const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8"; 
-    const TELEGRAM_CHAT_ID = "6449886096";           
-
-    const CLAVE_USUARIO = "1234";     
-    const CLAVE_ADMIN = "admin123";   
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const codigosRef = ref(db, 'codigos');
-
-    let listaGlobalCodigos = [];
-    let codigosAsignadosActuales = []; 
-    let tipoCodigoActualNombre = "";
-    let usuarioActual = "Usuario";
-
-    function obtenerInfoDispositivo() {
-      const ua = navigator.userAgent;
-      let sistema = ua.includes("Android") ? "📱 Android" : ua.includes("iPhone") ? "📱 iPhone" : "💻 PC";
-      return sistema;
-    }
-
-    function enviarMensajeTelegram(texto) {
-      const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-      return fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: texto,
-          parse_mode: "Markdown"
-        })
-      });
-    }
-
-    // Validar acceso
-    window.validarAcceso = function() {
-      const pass = document.getElementById('passInput').value;
-      const dispositivo = obtenerInfoDispositivo();
-      const fechaHora = new Date().toLocaleString("es-CO");
-
-      if (pass === CLAVE_ADMIN || pass === CLAVE_USUARIO) {
-        usuarioActual = (pass === CLAVE_ADMIN) ? "Administrador 🛠️" : "Usuario 🔑";
-        enviarMensajeTelegram(`🚨 *NUEVO INGRESO A LA APP*\n\n👤 *Acceso:* ${usuarioActual}\n💻 *Dispositivo:* ${dispositivo}\n📅 *Fecha:* ${fechaHora}`);
-
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appContent').style.display = 'block';
-        if (pass === CLAVE_ADMIN) document.getElementById('adminSection').style.display = 'block';
-      } else {
-        enviarMensajeTelegram(`⚠️ *INTENTO FALLIDO DE INGRESO*\n\n❌ *Clave probada:* \`${pass}\`\n💻 *Dispositivo:* ${dispositivo}\n📅 *Fecha:* ${fechaHora}`);
-        alert("🔒 Contraseña incorrecta.");
-      }
-    };
-
-    // Escuchar cambios en Firebase en tiempo real
-    onValue(codigosRef, (snapshot) => {
-      const data = snapshot.val();
-      listaGlobalCodigos = [];
-      if (data) {
-        Object.keys(data).forEach((key) => {
-          listaGlobalCodigos.push({ id: key, ...data[key] });
-        });
-      }
-      
-      document.getElementById('countBaja').innerText = listaGlobalCodigos.filter(c => !c.usado && (c.tipo === 'baja' || !c.tipo)).length;
-      document.getElementById('countAlta').innerText = listaGlobalCodigos.filter(c => !c.usado && c.tipo === 'alta').length;
-      document.getElementById('countOriental').innerText = listaGlobalCodigos.filter(c => !c.usado && c.tipo === 'oriental').length;
-
-      render();
-    });
-
-    window.guardarCodigos = function() {
-      const texto = document.getElementById('inputCodigos').value.trim();
-      const tipo = document.getElementById('tipoCodigoSelect').value;
-      if (!texto) return alert("Ingresa al menos un código.");
-      
-      texto.split('\n').filter(c => c.trim() !== '').forEach(c => {
-        push(codigosRef, { texto: c.trim(), tipo: tipo, usado: false });
-      });
-
-      document.getElementById('inputCodigos').value = '';
-      alert("Códigos guardados con éxito.");
-    };
-
-    // Pedir Varios Códigos
-    window.pedirCodigo = function(tipoRequerido) {
-      const cantidadPedida = parseInt(document.getElementById('cantInput').value) || 1;
-      const disponibles = listaGlobalCodigos.filter(c => !c.usado && (c.tipo === tipoRequerido || (!c.tipo && tipoRequerido === 'baja')));
-      
-      tipoCodigoActualNombre = "Occidental Baja";
-      if (tipoRequerido === 'alta') tipoCodigoActualNombre = "Occidental Alta";
-      if (tipoRequerido === 'oriental') tipoCodigoActualNombre = "Oriental";
-
-      if (disponibles.length === 0) {
-        document.getElementById('resultadoText').innerText = "❌ No quedan de " + tipoCodigoActualNombre;
-        ocultarBotonesAccion();
-        codigosAsignadosActuales = [];
-        return;
-      }
-
-      const elegidos = disponibles.slice(0, cantidadPedida);
-      codigosAsignadosActuales = elegidos;
-
-      elegidos.forEach(item => {
-        update(ref(db, 'codigos/' + item.id), { usado: true });
-      });
-
-      document.getElementById('resultadoText').innerText = `🔑 ${elegidos.length} código(s) reservado(s)`;
-      mostrarBotonesAccion();
-    };
-
-    // Procesar envío de mensajes individuales a Telegram
-    window.enviarYNotificarTelegram = async function() {
-      if (codigosAsignadosActuales.length === 0) return;
-
-      const btn = document.getElementById('btnCopiar');
-      btn.innerText = "⏳ Enviando...";
-
-      const dispositivo = obtenerInfoDispositivo();
-      const fechaHora = new Date().toLocaleString("es-CO");
-
-      await enviarMensajeTelegram(`📥 *SOLICITUD DE CÓDIGOS (${codigosAsignadosActuales.length})*\n\n📌 *Categoría:* ${tipoCodigoActualNombre}\n👤 *Usuario:* ${usuarioActual}\n💻 *Dispositivo:* ${dispositivo}\n📅 *Fecha:* ${fechaHora}`);
-
-      for (const item of codigosAsignadosActuales) {
-        await enviarMensajeTelegram(`\`${item.texto}\``);
-      }
-
-      btn.innerText = "✅ ¡Enviados a Telegram!";
-      setTimeout(() => { btn.innerText = "📋 Procesar y Enviar a Telegram"; }, 2500);
-    };
-
-    // Cancelar selección
-    window.cancelarSeleccion = async function() {
-      if (codigosAsignadosActuales.length === 0) return;
-
-      codigosAsignadosActuales.forEach(item => {
-        update(ref(db, 'codigos/' + item.id), { usado: false });
-      });
-
-      document.getElementById('resultadoText').innerText = 'Elige un tipo de código';
-      ocultarBotonesAccion();
-
-      const dispositivo = obtenerInfoDispositivo();
-      const fechaHora = new Date().toLocaleString("es-CO");
-      await enviarMensajeTelegram(`🔄 *CÓDIGOS CANCELADOS / LIBERADOS*\n\n📌 *Categoría:* ${tipoCodigoActualNombre}\n🔢 *Cantidad:* ${codigosAsignadosActuales.length}\n👤 *Acción por:* ${usuarioActual}\n📅 *Fecha:* ${fechaHora}`);
-
-      codigosAsignadosActuales = [];
-    };
-
-    function mostrarBotonesAccion() { document.getElementById('actionBtns').style.display = 'flex'; }
-    function ocultarBotonesAccion() { document.getElementById('actionBtns').style.display = 'none'; }
-
-    window.borrarTodo = function() {
-      if (confirm("¿Seguro que deseas borrar todos los códigos?")) {
-        remove(codigosRef);
-        document.getElementById('resultadoText').innerText = 'Elige un tipo de código';
-        ocultarBotonesAccion();
-      }
-    };
-
-    function render() {
-      const lista = document.getElementById('listaCodigos');
-      if (!lista) return;
-      lista.innerHTML = '';
-      if (listaGlobalCodigos.length === 0) {
-        lista.innerHTML = '<li style="color:#888;">No hay códigos cargados.</li>';
-        return;
-      }
-      listaGlobalCodigos.forEach((item) => {
-        const li = document.createElement('li');
-        let etiqueta = item.tipo === 'alta' ? '[Occ. Alta]' : item.tipo === 'oriental' ? '[Oriental]' : '[Occ. Baja]';
-        li.innerText = `${etiqueta} ${item.texto} ${item.usado ? "(Usado)" : "(Disponible)"}`;
-        if (item.usado) li.classList.add('used');
-        lista.appendChild(li);
-      });
-    }
-  </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 480px;
+        }
+        h2 { margin-top: 0; color: #333; text-align: center; }
+        input[type="password"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.3s;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        .btn-whatsapp:hover { background-color: #1ebc57; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .hidden { display: none; }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .status.success { background-color: #d4edda; color: #155724; }
+        .status.error { background-color: #f8d7da; color: #721c24; }
+        .counter {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 15px 0;
+        }
+        hr { border: 0; height: 1px; background: #e0e0e0; margin: 20px 0; }
+    </style>
 </head>
 <body>
 
 <div class="card">
-  <!-- Notificación de actualización automática de PWA -->
-  <div id="updateBanner" class="update-notification">
-    🔄 Nueva versión detectada. Actualizando aplicación...
-  </div>
+    <h2>Gestor de Códigos</h2>
 
-  <!-- Mensaje de instalación PWA -->
-  <div id="pwaBanner" class="pwa-banner">
-    📲 Para instalar como App en tu celular: Toca los 3 puntos u opciones de tu navegador y elige <b>"Agregar a la pantalla de inicio"</b>.
-  </div>
-
-  <!-- Pantalla de Login -->
-  <div id="loginScreen">
-    <h2>🔒 Acceso Restringido</h2>
-    <p style="text-align: center; color: #666; font-size: 14px;">Ingresa la contraseña para continuar:</p>
-    <input type="password" id="passInput" placeholder="Escribe la contraseña...">
-    <button class="btn-login" onclick="validarAcceso()">Entrar</button>
-  </div>
-
-  <!-- Contenido de la App -->
-  <div id="appContent">
-    <h2>Gestor de Códigos ☁️</h2>
-
-    <!-- Contadores -->
-    <div class="counters-container">
-      <div class="counter-badge badge-baja">🌊 Occ. Baja: <span id="countBaja">0</span></div>
-      <div class="counter-badge badge-alta">⚡ Occ. Alta: <span id="countAlta">0</span></div>
-      <div class="counter-badge badge-oriental">🌅 Oriental: <span id="countOriental">0</span></div>
+    <!-- Pantalla de Login -->
+    <div id="login-screen">
+        <p style="text-align: center; color: #666;">Ingresa tu clave de acceso:</p>
+        <input type="password" id="access-key" placeholder="Contraseña">
+        <button class="btn-primary" onclick="login()">Ingresar</button>
+        <div id="login-status" class="status hidden"></div>
     </div>
 
-    <!-- Selección de Cantidad -->
-    <div class="selector-cantidad">
-      <label for="cantInput">🔢 Cantidad de códigos a solicitar:</label>
-      <input type="number" id="cantInput" value="1" min="1" max="10">
-    </div>
+    <!-- Módulo Principal (Usuarios y Admin) -->
+    <div id="main-screen" class="hidden">
+        <div class="counter" id="code-counter">Cargando códigos disponibles...</div>
 
-    <!-- Botones de Petición -->
-    <div class="btn-group">
-      <div class="btn-group-row">
-        <button class="btn-get-baja" onclick="pedirCodigo('baja')">🌊 Occ. Baja</button>
-        <button class="btn-get-alta" onclick="pedirCodigo('alta')">⚡ Occ. Alta</button>
-      </div>
-      <button class="btn-get-oriental" onclick="pedirCodigo('oriental')">🌅 Oriental</button>
-    </div>
-
-    <!-- Contenedor de Resultados -->
-    <div class="result-container">
-      <span id="resultadoText" class="result-text">Elige un tipo de código</span>
-      <div id="actionBtns" class="action-buttons" style="display: none;">
-        <button id="btnCopiar" class="btn-copy" onclick="enviarYNotificarTelegram()">📋 Procesar y Enviar a Telegram</button>
-        <button id="btnCancelar" class="btn-cancel" onclick="cancelarSeleccion()">✖ Cancelar Reserva</button>
-      </div>
-    </div>
-
-    <!-- Panel de Administración -->
-    <div id="adminSection">
-      <hr style="margin-top: 30px; border: 0; border-top: 1px dashed #ccc;">
-      <h3 style="color: #333; margin-bottom: 5px;">🛠️ Panel del Administrador</h3>
-      
-      <div>
-        <select id="tipoCodigoSelect">
-          <option value="baja">Categoría: Occidental Baja</option>
-          <option value="alta">Categoría: Occidental Alta</option>
-          <option value="oriental">Categoría: Oriental</option>
+        <label style="font-weight: bold; color: #444;">Cantidad de códigos a pedir:</label>
+        <select id="code-qty">
+            <option value="1">1 Código</option>
+            <option value="2">2 Códigos</option>
+            <option value="3">3 Códigos</option>
+            <option value="4">4 Códigos</option>
+            <option value="5">5 Códigos</option>
         </select>
-        <textarea id="inputCodigos" placeholder="Ingresa los códigos aquí (uno por línea)..."></textarea>
-        <button class="btn-add" onclick="guardarCodigos()">+ Guardar Códigos en la Nube</button>
-      </div>
 
-      <details>
-        <summary>👁️ Ver lista de códigos y estado</summary>
-        <ul id="listaCodigos"></ul>
-        <button style="background: #dc3545; color: white; margin-top: 15px; font-size: 12px; padding: 6px;" onclick="borrarTodo()">🗑️ Borrar base de datos en la nube</button>
-      </details>
+        <button class="btn-whatsapp" onclick="requestCodes()">📱 Solicitar por WhatsApp y Telegram</button>
+        <div id="user-status" class="status hidden"></div>
+
+        <!-- Panel Exclusivo de Administrador -->
+        <div id="admin-panel" class="hidden">
+            <hr>
+            <h3 style="text-align: center; color: #333;">Panel de Administración</h3>
+            <p style="font-size: 13px; color: #666;">Pega los códigos aquí (uno por línea):</p>
+            <textarea id="bulk-codes" rows="6" placeholder="CODIGO1&#10;CODIGO2&#10;CODIGO3"></textarea>
+            <button class="btn-success" onclick="uploadCodes()">Cargar Códigos a Firebase</button>
+            <button class="btn-danger" onclick="clearAllCodes()">Borrar Todos los Códigos</button>
+            <div id="admin-status" class="status hidden"></div>
+        </div>
     </div>
-
-  </div>
 </div>
 
 <script>
-  // Script para manejar la instalación PWA
-  if (window.matchMedia('(display-mode: browser)').matches) {
-    const pwaBanner = document.getElementById('pwaBanner');
-    if (pwaBanner) pwaBanner.style.display = 'block';
-  }
+    // Configuración de Seguridad y Canales
+    const CLAVE_USUARIO = "1234";
+    const CLAVE_ADMIN = "admin123";
+    const NUMERO_WHATSAPP = "573015379493"; // Tu número configurado
+    
+    // Configuración Firebase RTDB
+    const FIREBASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com/codigos";
+    
+    // Configuración Telegram
+    const TELEGRAM_TOKEN = "7891823719:AAH..."; // Tu token del Bot
+    const TELEGRAM_CHAT_ID = "123456789";       // Tu Chat ID personal
 
-  // Registro de Service Worker para Auto-Actualización transparente en segundo plano
-  if ('serviceWorker' in navigator) {
-    const swCode = `
-      const CACHE_NAME = 'app-codigos-v1';
-      self.addEventListener('install', (e) => {
-        self.skipWaiting();
-      });
-      self.addEventListener('activate', (e) => {
-        e.waitUntil(clients.claim());
-      });
-      self.addEventListener('fetch', (e) => {
-        // Red primero para garantizar la versión más fresca del HTML/JS
-        e.respondWith(
-          fetch(e.request).catch(() => caches.match(e.request))
-        );
-      });
-    `;
+    let isAwesomeAdmin = false;
 
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
+    function login() {
+        const inputKey = document.getElementById('access-key').value.trim();
+        const status = document.getElementById('login-status');
 
-    navigator.serviceWorker.register(swUrl).then((registration) => {
-      registration.onupdatefound = () => {
-        const installingWorker = registration.installing;
-        if (installingWorker) {
-          installingWorker.onstatechange = () => {
-            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              const banner = document.getElementById('updateBanner');
-              if (banner) banner.style.display = 'block';
-              setTimeout(() => { window.location.reload(); }, 1500);
-            }
-          };
+        if (inputKey === CLAVE_ADMIN) {
+            isAwesomeAdmin = true;
+            document.getElementById('admin-panel').classList.remove('hidden');
+            showMainScreen();
+        } else if (inputKey === CLAVE_USUARIO) {
+            isAwesomeAdmin = false;
+            document.getElementById('admin-panel').classList.add('hidden');
+            showMainScreen();
+        } else {
+            showStatus(status, "Clave incorrecta", "error");
         }
-      };
-    }).catch(err => console.log('Service Worker no registrado:', err));
-  }
-</script>
+    }
 
+    function showMainScreen() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        fetchCounter();
+    }
+
+    async function fetchCounter() {
+        try {
+            const res = await fetch(`${FIREBASE_URL}.json`);
+            const data = await res.json();
+            const counterEl = document.getElementById('code-counter');
+            
+            if (!data) {
+                counterEl.textContent = "Códigos disponibles: 0";
+                return [];
+            }
+            
+            const availableKeys = Object.keys(data);
+            counterEl.textContent = `Códigos disponibles: ${availableKeys.length}`;
+            return availableKeys.map(key => ({ id: key, value: data[key] }));
+        } catch (err) {
+            document.getElementById('code-counter').textContent = "Error al conectar con la base de datos";
+            return [];
+        }
+    }
+
+    async function requestCodes() {
+        const qty = parseInt(document.getElementById('code-qty').value);
+        const status = document.getElementById('user-status');
+        showStatus(status, "Procesando solicitud...", "success");
+
+        const codes = await fetchCounter();
+
+        if (codes.length < qty) {
+            showStatus(status, `No hay suficientes códigos. Disponibles: ${codes.length}`, "error");
+            return;
+        }
+
+        const selected = codes.slice(0, qty);
+        let messageText = `📲 *Solicitud de Códigos (${qty})*\n\n`;
+
+        for (let i = 0; i < selected.length; i++) {
+            const item = selected[i];
+            messageText += `Código ${i + 1}: \`${item.value}\`\n`;
+            
+            // Eliminar de Firebase
+            await fetch(`${FIREBASE_URL}/${item.id}.json`, { method: 'DELETE' });
+        }
+
+        // 1. Enviar respaldo automático a Telegram
+        try {
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: messageText,
+                    parse_mode: 'Markdown'
+                })
+            });
+        } catch(e) { console.error("Error Telegram", e); }
+
+        // 2. Abrir WhatsApp con el texto preescribido hacia tu número
+        const cleanMsg = encodeURIComponent(messageText.replace(/\*/g, '').replace(/`/g, ''));
+        const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${cleanMsg}`;
+        window.open(waUrl, '_blank');
+
+        showStatus(status, "¡Códigos extraídos correctamente! Se ha abierto WhatsApp.", "success");
+        fetchCounter();
+    }
+
+    async function uploadCodes() {
+        const text = document.getElementById('bulk-codes').value.trim();
+        const status = document.getElementById('admin-status');
+        
+        if (!text) {
+            showStatus(status, "Ingresa al menos un código", "error");
+            return;
+        }
+
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+        for (const code of lines) {
+            await fetch(`${FIREBASE_URL}.json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(code)
+            });
+        }
+
+        document.getElementById('bulk-codes').value = '';
+        showStatus(status, `Se cargaron ${lines.length} códigos con éxito`, "success");
+        fetchCounter();
+    }
+
+    async function clearAllCodes() {
+        if (!confirm("¿Seguro que deseas eliminar TODOS los códigos de la base de datos?")) return;
+        const status = document.getElementById('admin-status');
+        
+        await fetch(`${FIREBASE_URL}.json`, { method: 'DELETE' });
+        showStatus(status, "Base de datos vaciada", "error");
+        fetchCounter();
+    }
+
+    function showStatus(element, msg, type) {
+        element.textContent = msg;
+        element.className = `status ${type}`;
+        element.classList.remove('hidden');
+    }
+
+    // Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('data:text/javascript,console.log("PWA SW activo")');
+    }
+</script>
 </body>
 </html>
