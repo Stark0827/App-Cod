@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Códigos Privado</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background-color: #f4f6f9; 
+      display: flex; 
+      justify-content: center; 
+      padding: 20px; 
+    }
+    .card { 
+      background: white; 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+      width: 100%; 
+      max-width: 480px; 
+    }
+    h2 { margin-top: 0; color: #333; text-align: center; }
+    input[type="password"], textarea, select { 
+      width: 100%; 
+      padding: 12px; 
+      border: 1px solid #ccc; 
+      border-radius: 8px; 
+      box-sizing: border-box; 
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    textarea { height: 80px; resize: vertical; }
+    button { 
+      width: 100%; 
+      padding: 12px; 
+      margin-top: 10px; 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.2s; 
+    }
+    .btn-login { background: #17a2b8; color: white; font-size: 16px; }
+    .btn-add { background: #28a745; color: white; }
+    .btn-add:hover { background: #218838; }
+    
+    /* Contadores de Disponibilidad */
+    .counters-container {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    .counter-badge {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .badge-baja { background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
+    .badge-alta { background: #f3e5f5; color: #4a148c; border: 1px solid #e1bee7; }
+    .badge-oriental { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .btn-group-row {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-get-baja { background: #007bff; color: white; font-size: 14px; padding: 12px; flex: 1; }
+    .btn-get-alta { background: #6f42c1; color: white; font-size: 14px; padding: 12px; flex: 1; }
+    .btn-get-oriental { background: #28a745; color: white; font-size: 14px; padding: 12px; width: 100%; }
+    
+    .btn-get-baja:hover { background: #0069d9; }
+    .btn-get-alta:hover { background: #5a32a3; }
+    .btn-get-oriental:hover { background: #218838; }
+
+    .action-buttons {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-copy { 
+      background: #17a2b8; 
+      color: white; 
+      padding: 8px 12px; 
+      font-size: 13px; 
+      width: auto; 
+      margin-top: 0;
+    }
+    .btn-copy:hover { background: #138496; }
+
+    .btn-cancel {
+      background: #6c757d;
+      color: white;
+      padding: 8px 10px;
+      font-size: 13px;
+      width: auto;
+      margin-top: 0;
+    }
+    .btn-cancel:hover { background: #5a6268; }
+
+    .btn-clear { background: #dc3545; color: white; margin-top: 15px; font-size: 12px; padding: 6px; }
+    
+    .result-container { 
+      background: #e9ecef; 
+      padding: 12px 15px; 
+      border-radius: 8px; 
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 15px; 
+      border: 2px dashed #6c757d;
+      min-height: 45px;
+    }
+    .result-text {
+      font-size: 15px; 
+      font-weight: bold; 
+      color: #212529;
+      word-break: break-all;
+    }
+    
+    details {
+      margin-top: 25px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 10px 15px;
+    }
+    summary {
+      font-weight: bold;
+      color: #495057;
+      cursor: pointer;
+      user-select: none;
+    }
+    summary:hover { color: #007bff; }
+    ul { list-style: none; padding: 0; margin-top: 15px; max-height: 200px; overflow-y: auto; }
+    li { 
+      padding: 8px 12px; 
+      border-bottom: 1px solid #eee; 
+      display: flex; 
+      justify-content: space-between; 
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .used { 
+      text-decoration: line-through; 
+      color: #a0a0a0; 
+      background-color: #e9ecef; 
+    }
+
+    #appContent, #adminSection { display: none; }
+  </style>
+
+  <!-- Módulos de Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAthEhw8Dsr5YfVnePRtN3t08PAbbFum0c",
+      authDomain: "base-de-datos-codigos-c1bb1.firebaseapp.com",
+      databaseURL: "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com",
+      projectId: "base-de-datos-codigos-c1bb1",
+      storageBucket: "base-de-datos-codigos-c1bb1.firebasestorage.app",
+      messagingSenderId: "687756320508",
+      appId: "1:687756320508:web:afcb16216b75267da28179",
+      measurementId: "G-0ZYNH84Q2Q"
+    };
+
+    // 🔑 CREDENCIALES
+    const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8"; 
+    const TELEGRAM_CHAT_ID = "6449886096";           
+
+    const CLAVE_USUARIO = "1234";     
+    const CLAVE_ADMIN = "admin123";   
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const codigosRef = ref(db, 'codigos');
+
+    let listaGlobalCodigos = [];
+    let codigoActual = "";
+    let idCodigoActual = null;
+    let tipoCodigoActualNombre = "";
+    let usuarioActual = "Usuario";
+
+    // Detectar información del dispositivo
+    function obtenerInfoDispositivo() {
+      const ua = navigator.userAgent;
+      let sistema = "Desconocido";
+      let navegador = "Navegador Web";
+
+      if (ua.includes("Android")) sistema = "📱 Android";
+      else if (ua.includes("iPhone")) sistema = "📱 iPhone";
+      else if (ua.includes("Windows")) sistema = "💻 Windows PC";
+      else if (ua.includes("Mac")) sistema = "💻 Mac";
+      else if (ua.includes("Linux")) sistema = "💻 Linux";
+
+      if (ua.includes("Chrome")) navegador = "Chrome";
+      else if (ua.includes("Safari") && !ua.includes("Chrome")) navegador = "Safari";
+      else if (ua.includes("Firefox")) navegador = "Firefox";
+      else if (ua.includes("Edg")) navegador = "Edge";
+
+      return `${sistema} (${navegador})`;
+    }
+
+    // Enviar alerta personalizada a Telegram
+    function enviarAlertaTelegram(mensaje) {
+      const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+      
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: mensaje,
+          parse_mode: "Markdown"
+        })
+      }).catch(err => console.error("Error al enviar a Telegram:", err));
+    }
+
+    // Validar acceso
+    window.validarAcceso = function() {
+      const pass = document.getElementById('passInput').value;
+      const dispositivo = obtenerInfoDispositivo();
+      const fechaHora = new Date().toLocaleString("es-CO");
+
+      if (pass === CLAVE_ADMIN) {
+        usuarioActual = "Administrador 🛠️";
+        const mensaje = `🚨 *NUEVO INGRESO A LA APP*\n\n` +
+                        `👤 *Acceso:* ${usuarioActual}\n` +
+                        `💻 *Dispositivo:* ${dispositivo}\n` +
+                        `📅 *Fecha y Hora:* ${fechaHora}`;
+        enviarAlertaTelegram(mensaje);
+
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContent').style.display = 'block';
+        document.getElementById('adminSection').style.display = 'block';
+      } else if (pass === CLAVE_USUARIO) {
+        usuarioActual = "Usuario 🔑";
+        const mensaje = `🚨 *NUEVO INGRESO A LA APP*\n\n` +
+                        `👤 *Acceso:* ${usuarioActual}\n` +
+                        `💻 *Dispositivo:* ${dispositivo}\n` +
+                        `📅 *Fecha y Hora:* ${fechaHora}`;
+        enviarAlertaTelegram(mensaje);
+
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContent').style.display = 'block';
+        document.getElementById('adminSection').style.display = 'none';
+      } else {
+        const mensaje = `⚠️ *INTENTO FALLIDO DE INGRESO*\n\n` +
+                        `❌ *Clave probada:* \`${pass}\`\n` +
+                        `💻 *Dispositivo:* ${dispositivo}\n` +
+                        `📅 *Fecha y Hora:* ${fechaHora}`;
+        enviarAlertaTelegram(mensaje);
+
+        alert("🔒 Contraseña incorrecta. Acceso denegado.");
+      }
+    };
+
+    // Escuchar cambios en Firebase
+    onValue(codigosRef, (snapshot) => {
+      const data = snapshot.val();
+      listaGlobalCodigos = [];
+      if (data) {
+        Object.keys(data).forEach((key) => {
+          listaGlobalCodigos.push({ id: key, ...data[key] });
+        });
+      }
+      
+      const disponBaja = listaGlobalCodigos.filter(c => !c.usado && (c.tipo === 'baja' || !c.tipo)).length;
+      const disponAlta = listaGlobalCodigos.filter(c => !c.usado && c.tipo === 'alta').length;
+      const disponOriental = listaGlobalCodigos.filter(c => !c.usado && c.tipo === 'oriental').length;
+
+      document.getElementById('countBaja').innerText = disponBaja;
+      document.getElementById('countAlta').innerText = disponAlta;
+      document.getElementById('countOriental').innerText = disponOriental;
+
+      render();
+    });
+
+    // Guardar nuevos códigos
+    window.guardarCodigos = function() {
+      const texto = document.getElementById('inputCodigos').value.trim();
+      const tipo = document.getElementById('tipoCodigoSelect').value;
+
+      if (!texto) return alert("Ingresa al menos un código.");
+      
+      const nuevos = texto.split('\n').filter(c => c.trim() !== '');
+      nuevos.forEach(c => {
+        push(codigosRef, { texto: c.trim(), tipo: tipo, usado: false });
+      });
+
+      document.getElementById('inputCodigos').value = '';
+      alert("Códigos guardados con éxito.");
+    };
+
+    // Pedir código y notificar por Telegram
+    window.pedirCodigo = function(tipoRequerido) {
+      const disponibles = listaGlobalCodigos.filter(c => !c.usado && (c.tipo === tipoRequerido || (!c.tipo && tipoRequerido === 'baja')));
+      
+      tipoCodigoActualNombre = "Occidental Baja";
+      if (tipoRequerido === 'alta') tipoCodigoActualNombre = "Occidental Alta";
+      if (tipoRequerido === 'oriental') tipoCodigoActualNombre = "Oriental";
+
+      if (disponibles.length === 0) {
+        document.getElementById('resultadoText').innerText = "❌ No quedan de " + tipoCodigoActualNombre;
+        ocultarBotonesAccion();
+        codigoActual = "";
+        idCodigoActual = null;
+        return;
+      }
+
+      const seleccionado = disponibles[0];
+      idCodigoActual = seleccionado.id;
+      codigoActual = seleccionado.texto;
+
+      update(ref(db, 'codigos/' + idCodigoActual), { usado: true });
+
+      // Ocultar el código en pantalla por seguridad
+      document.getElementById('resultadoText').innerText = "🔑 Código asignado (Listo para copiar)";
+      mostrarBotonesAccion();
+
+      // Notificación de extracción a Telegram
+      const dispositivo = obtenerInfoDispositivo();
+      const fechaHora = new Date().toLocaleString("es-CO");
+      const mensajeCod = `📥 *CÓDIGO EXTRAÍDO*\n\n` +
+                         `📌 *Categoría:* ${tipoCodigoActualNombre}\n` +
+                         `🔑 *Código:* \`${codigoActual}\`\n` +
+                         `👤 *Solicitado por:* ${usuarioActual}\n` +
+                         `💻 *Dispositivo:* ${dispositivo}\n` +
+                         `📅 *Fecha:* ${fechaHora}`;
+      enviarAlertaTelegram(mensajeCod);
+    };
+
+    // Cancelar selección y notificar a Telegram
+    window.cancelarSeleccion = function() {
+      if (!idCodigoActual) return;
+
+      const codigoCancelado = codigoActual;
+
+      // Devolver código a estado disponible en Firebase
+      update(ref(db, 'codigos/' + idCodigoActual), { usado: false });
+
+      // Resetear pantalla
+      document.getElementById('resultadoText').innerText = 'Elige un tipo de código';
+      ocultarBotonesAccion();
+
+      // Alerta de Cancelación a Telegram
+      const dispositivo = obtenerInfoDispositivo();
+      const fechaHora = new Date().toLocaleString("es-CO");
+      const mensajeCancel = `🔄 *CÓDIGO CANCELADO / LIBERADO*\n\n` +
+                            `📌 *Categoría:* ${tipoCodigoActualNombre}\n` +
+                            `🔑 *Código liberado:* \`${codigoCancelado}\`\n` +
+                            `👤 *Acción realizada por:* ${usuarioActual}\n` +
+                            `💻 *Dispositivo:* ${dispositivo}\n` +
+                            `📅 *Fecha:* ${fechaHora}`;
+      enviarAlertaTelegram(mensajeCancel);
+
+      codigoActual = "";
+      idCodigoActual = null;
+    };
+
+    function mostrarBotonesAccion() {
+      document.getElementById('actionBtns').style.display = 'flex';
+    }
+
+    function ocultarBotonesAccion() {
+      document.getElementById('actionBtns').style.display = 'none';
+    }
+
+    // Copiar código al portapapeles (oculto en pantalla)
+    window.copiarAlPortapapeles = function() {
+      if (!codigoActual) return;
+
+      const tempInput = document.createElement("input");
+      tempInput.value = codigoActual;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      tempInput.setSelectionRange(0, 99999);
+
+      try {
+        document.execCommand("copy");
+        const btn = document.getElementById('btnCopiar');
+        btn.innerText = "✅ ¡Copiado!";
+        setTimeout(() => { btn.innerText = "📋 Copiar"; }, 2000);
+      } catch (err) {
+        alert("Error al copiar. Por favor vuelve a intentarlo.");
+      }
+
+      document.body.removeChild(tempInput);
+    };
+
+    // Borrar todo
+    window.borrarTodo = function() {
+      if (confirm("¿Seguro que deseas borrar todos los códigos en la nube?")) {
+        remove(codigosRef);
+        document.getElementById('resultadoText').innerText = 'Elige un tipo de código';
+        ocultarBotonesAccion();
+      }
+    };
+
+    // Renderizar lista en panel de administración
+    function render() {
+      const lista = document.getElementById('listaCodigos');
+      if (!lista) return;
+      lista.innerHTML = '';
+
+      if (listaGlobalCodigos.length === 0) {
+        lista.innerHTML = '<li style="color:#888;">No hay códigos cargados.</li>';
+        return;
+      }
+
+      listaGlobalCodigos.forEach((item) => {
+        const li = document.createElement('li');
+        let etiquetaTipo = '[Occ. Baja]';
+        if (item.tipo === 'alta') etiquetaTipo = '[Occ. Alta]';
+        if (item.tipo === 'oriental') etiquetaTipo = '[Oriental]';
+
+        li.innerText = `${etiquetaTipo} ${item.texto} ${item.usado ? "(Usado)" : "(Disponible)"}`;
+        if (item.usado) li.classList.add('used');
+        lista.appendChild(li);
+      });
+    }
+  </script>
+</head>
+<body>
+
+<div class="card">
+  <!-- Pantalla de Login -->
+  <div id="loginScreen">
+    <h2>🔒 Acceso Restringido</h2>
+    <p style="text-align: center; color: #666; font-size: 14px;">Ingresa la contraseña para continuar:</p>
+    <input type="password" id="passInput" placeholder="Escribe la contraseña...">
+    <button class="btn-login" onclick="validarAcceso()">Entrar</button>
+  </div>
+
+  <!-- Contenido de la App -->
+  <div id="appContent">
+    <h2>Gestor de Códigos ☁️</h2>
+
+    <!-- Tarjetas de Disponibilidad -->
+    <div class="counters-container">
+      <div class="counter-badge badge-baja">
+        🌊 Occ. Baja: <span id="countBaja">0</span>
+      </div>
+      <div class="counter-badge badge-alta">
+        ⚡ Occ. Alta: <span id="countAlta">0</span>
+      </div>
+      <div class="counter-badge badge-oriental">
+        🌅 Oriental: <span id="countOriental">0</span>
+      </div>
+    </div>
+
+    <!-- Botones de Petición -->
+    <div class="btn-group">
+      <div class="btn-group-row">
+        <button class="btn-get-baja" onclick="pedirCodigo('baja')">🌊 Occ. Baja</button>
+        <button class="btn-get-alta" onclick="pedirCodigo('alta')">⚡ Occ. Alta</button>
+      </div>
+      <button class="btn-get-oriental" onclick="pedirCodigo('oriental')">🌅 Oriental</button>
+    </div>
+
+    <!-- Resultado, Copiado y Cancelación -->
+    <div class="result-container">
+      <span id="resultadoText" class="result-text">Elige un tipo de código</span>
+      <div id="actionBtns" class="action-buttons" style="display: none;">
+        <button id="btnCopiar" class="btn-copy" onclick="copiarAlPortapapeles()">📋 Copiar</button>
+        <button id="btnCancelar" class="btn-cancel" onclick="cancelarSeleccion()" title="Devolver código a disponible">✖ Cancelar</button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN SOLO PARA TI (ADMIN) -->
+    <div id="adminSection">
+      <hr style="margin-top: 30px; border: 0; border-top: 1px dashed #ccc;">
+      <h3 style="color: #333; margin-bottom: 5px;">🛠️ Panel del Administrador</h3>
+      
+      <!-- Cargar nuevos códigos -->
+      <div>
+        <select id="tipoCodigoSelect">
+          <option value="baja">Categoría: Occidental Baja</option>
+          <option value="alta">Categoría: Occidental Alta</option>
+          <option value="oriental">Categoría: Oriental</option>
+        </select>
+        <textarea id="inputCodigos" placeholder="Ingresa los códigos aquí (uno por línea)..."></textarea>
+        <button class="btn-add" onclick="guardarCodigos()">+ Guardar Códigos en la Nube</button>
+      </div>
+
+      <!-- Desplegable de auditoría -->
+      <details>
+        <summary>👁️ Ver lista de códigos y estado</summary>
+        <ul id="listaCodigos"></ul>
+        <button class="btn-clear" onclick="borrarTodo()">🗑️ Borrar base de datos en la nube</button>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
