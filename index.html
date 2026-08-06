@@ -7,16 +7,16 @@
     
     <!-- Configuración PWA -->
     <link rel="manifest" href="data:application/manifest+json,{
-        \"name\": \"Gestor de Códigos\",
-        \"short_name\": \"Códigos\",
-        \"start_url\": \".\",
-        \"display\": \"standalone\",
-        \"background_color\": \"#f4f6f9\",
-        \"theme_color\": \"#007bff\",
-        \"icons\": [{
-            \"src\": \"https://cdn-icons-png.flaticon.com/512/0/191.png\",
-            \"sizes\": \"512x512\",
-            \"type\": \"image/png\"
+        &quot;name&quot;: &quot;Gestor de Códigos&quot;,
+        &quot;short_name&quot;: &quot;Códigos&quot;,
+        &quot;start_url&quot;: &quot;.&quot;,
+        &quot;display&quot;: &quot;standalone&quot;,
+        &quot;background_color&quot;: &quot;#f4f6f9&quot;,
+        &quot;theme_color&quot;: &quot;#007bff&quot;,
+        &quot;icons&quot;: [{
+            &quot;src&quot;: &quot;https://cdn-icons-png.flaticon.com/512/0/191.png&quot;,
+            &quot;sizes&quot;: &quot;512x512&quot;,
+            &quot;type&quot;: &quot;image/png&quot;
         }]
     }">
     <meta name="theme-color" content="#007bff">
@@ -28,19 +28,46 @@
             background-color: #f4f6f9;
             display: flex;
             justify-content: center;
-            padding: 20px;
+            padding: 15px;
             margin: 0;
         }
         .card {
             background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             width: 100%;
             max-width: 480px;
         }
-        h2 { margin-top: 0; color: #333; text-align: center; }
-        input[type="password"], textarea, select {
+        .banner {
+            background-color: #fff8e1;
+            border: 1px solid #ffe082;
+            color: #8d6e63;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        h2 { margin-top: 0; color: #333; text-align: center; font-size: 20px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .stat-box {
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .box-baja { background-color: #e3f2fd; color: #1565c0; }
+        .box-alta { background-color: #f3e5f5; color: #7b1fa2; }
+        .box-oriental { background-color: #e8f5e9; color: #2e7d32; }
+        
+        input[type="password"], textarea, input[type="number"] {
             width: 100%;
             padding: 12px;
             border: 1px solid #ccc;
@@ -49,111 +76,159 @@
             margin-top: 10px;
             font-size: 14px;
         }
-        button {
+        
+        .cat-btn {
             width: 100%;
             padding: 12px;
             border: none;
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
+            color: white;
             cursor: pointer;
-            margin-top: 12px;
-            transition: background 0.3s;
+            margin-top: 8px;
         }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .btn-success { background-color: #28a745; color: white; }
-        .btn-success:hover { background-color: #218838; }
-        .btn-whatsapp { background-color: #25D366; color: white; }
-        .btn-whatsapp:hover { background-color: #1ebc57; }
-        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-baja { background-color: #007bff; }
+        .btn-alta { background-color: #6f42c1; }
+        .btn-oriental { background-color: #28a745; }
+        
+        .action-box {
+            background-color: #f8f9fa;
+            border: 2px dashed #007bff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .btn-process {
+            background-color: #25D366;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .btn-admin-add { background-color: #28a745; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; }
+        .btn-admin-clear { background-color: #dc3545; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; }
+        
         .hidden { display: none; }
         .status {
-            margin-top: 15px;
+            margin-top: 12px;
             padding: 10px;
             border-radius: 6px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
         }
         .status.success { background-color: #d4edda; color: #155724; }
         .status.error { background-color: #f8d7da; color: #721c24; }
-        .counter {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: #007bff;
-            margin: 15px 0;
-        }
         hr { border: 0; height: 1px; background: #e0e0e0; margin: 20px 0; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Gestor de Códigos</h2>
+    <div class="banner">
+        📱 Para instalar como App en tu celular: Toca los 3 puntos u opciones de tu navegador y elige "Agregar a la pantalla de inicio".
+    </div>
 
-    <!-- Pantalla de Login -->
+    <h2>Gestor de Códigos ☁️</h2>
+
+    <!-- Login -->
     <div id="login-screen">
-        <p style="text-align: center; color: #666;">Ingresa tu clave de acceso:</p>
+        <p style="text-align: center; color: #666; font-size: 14px;">Ingresa tu clave de acceso:</p>
         <input type="password" id="access-key" placeholder="Contraseña">
-        <button class="btn-primary" onclick="login()">Ingresar</button>
+        <button class="cat-btn btn-baja" onclick="login()" style="margin-top: 12px;">Ingresar</button>
         <div id="login-status" class="status hidden"></div>
     </div>
 
-    <!-- Módulo Principal (Usuarios y Admin) -->
+    <!-- Módulo Principal -->
     <div id="main-screen" class="hidden">
-        <div class="counter" id="code-counter">Cargando códigos disponibles...</div>
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-box box-baja">🌊 Occ. Baja: <span id="cnt-baja">0</span></div>
+            <div class="stat-box box-alta">⚡ Occ. Alta: <span id="cnt-alta">0</span></div>
+            <div class="stat-box box-oriental">👷 Oriental: <span id="cnt-oriental">0</span></div>
+        </div>
 
-        <label style="font-weight: bold; color: #444;">Cantidad de códigos a pedir:</label>
-        <select id="code-qty">
-            <option value="1">1 Código</option>
-            <option value="2">2 Códigos</option>
-            <option value="3">3 Códigos</option>
-            <option value="4">4 Códigos</option>
-            <option value="5">5 Códigos</option>
-        </select>
+        <label style="font-size: 13px; font-weight: bold; color: #444;">🔢 Cantidad de códigos a solicitar:</label>
+        <input type="number" id="code-qty" value="1" min="1" max="10">
 
-        <button class="btn-whatsapp" onclick="requestCodes()">📱 Solicitar por WhatsApp y Telegram</button>
+        <!-- Botones de Categorías -->
+        <button class="cat-btn btn-baja" onclick="reserveCodes('Occ. Baja')">🌊 Occ. Baja</button>
+        <button class="cat-btn btn-alta" onclick="reserveCodes('Occ. Alta')">⚡ Occ. Alta</button>
+        <button class="cat-btn btn-oriental" onclick="reserveCodes('Oriental')">👷 Oriental</button>
+
+        <!-- Área de Acción / Reserva -->
+        <div id="action-box" class="action-box hidden">
+            <div style="font-weight: bold; color: #333; font-size: 14px;">
+                🔑 <span id="reserved-info">0 código(s) reservado(s)</span>
+            </div>
+            <button class="btn-process" onclick="processAndSend()">📱 Enviar por WhatsApp y Telegram</button>
+            <button class="btn-cancel" onclick="cancelReservation()">✖ Cancelar Reserva</button>
+        </div>
+
         <div id="user-status" class="status hidden"></div>
 
-        <!-- Panel Exclusivo de Administrador -->
+        <!-- Panel Administrador -->
         <div id="admin-panel" class="hidden">
             <hr>
-            <h3 style="text-align: center; color: #333;">Panel de Administración</h3>
-            <p style="font-size: 13px; color: #666;">Pega los códigos aquí (uno por línea):</p>
-            <textarea id="bulk-codes" rows="6" placeholder="CODIGO1&#10;CODIGO2&#10;CODIGO3"></textarea>
-            <button class="btn-success" onclick="uploadCodes()">Cargar Códigos a Firebase</button>
-            <button class="btn-danger" onclick="clearAllCodes()">Borrar Todos los Códigos</button>
+            <h3 style="text-align: center; color: #333; font-size: 16px; margin: 0 0 10px 0;">Panel de Administración</h3>
+            
+            <label style="font-size: 12px; color: #666;">Selecciona la categoría para cargar:</label>
+            <select id="admin-category" style="width:100%; padding:8px; border-radius:6px; margin-top:4px;">
+                <option value="Occ. Baja">Occ. Baja</option>
+                <option value="Occ. Alta">Occ. Alta</option>
+                <option value="Oriental">Oriental</option>
+            </select>
+
+            <textarea id="bulk-codes" rows="5" placeholder="Pega los códigos aquí (uno por línea)..." style="margin-top:10px;"></textarea>
+            <button class="btn-admin-add" onclick="uploadCodes()">Cargar Códigos a Firebase</button>
+            <button class="btn-admin-clear" onclick="clearCategoryCodes()">Borrar Códigos de esta Categoría</button>
             <div id="admin-status" class="status hidden"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // Configuración de Seguridad y Canales
+    // === CONFIGURACIÓN ===
     const CLAVE_USUARIO = "1234";
     const CLAVE_ADMIN = "admin123";
-    const NUMERO_WHATSAPP = "573015379493"; // Tu número configurado
+    const NUMERO_WHATSAPP = "573015379493"; // Tu número de WhatsApp
     
-    // Configuración Firebase RTDB
-    const FIREBASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com/codigos";
+    // Firebase URL base
+    const FIREBASE_BASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com/codigos";
     
-    // Configuración Telegram
-    const TELEGRAM_TOKEN = "7891823719:AAH..."; // Tu token del Bot
-    const TELEGRAM_CHAT_ID = "123456789";       // Tu Chat ID personal
+    // Telegram Bot
+    const TELEGRAM_TOKEN = "7891823719:AAH..."; // Tu token
+    const TELEGRAM_CHAT_ID = "123456789";       // Tu Chat ID
 
-    let isAwesomeAdmin = false;
+    let reservedItems = [];
+    let currentCategory = "";
 
     function login() {
         const inputKey = document.getElementById('access-key').value.trim();
         const status = document.getElementById('login-status');
 
         if (inputKey === CLAVE_ADMIN) {
-            isAwesomeAdmin = true;
             document.getElementById('admin-panel').classList.remove('hidden');
             showMainScreen();
         } else if (inputKey === CLAVE_USUARIO) {
-            isAwesomeAdmin = false;
             document.getElementById('admin-panel').classList.add('hidden');
             showMainScreen();
         } else {
@@ -164,53 +239,89 @@
     function showMainScreen() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
-        fetchCounter();
+        fetchAllCounters();
     }
 
-    async function fetchCounter() {
+    function getCatKey(cat) {
+        if (cat === "Occ. Baja") return "occ_baja";
+        if (cat === "Occ. Alta") return "occ_alta";
+        if (cat === "Oriental") return "oriental";
+        return "general";
+    }
+
+    async function fetchAllCounters() {
+        await fetchCategoryCount("Occ. Baja", "cnt-baja");
+        await fetchCategoryCount("Occ. Alta", "cnt-alta");
+        await fetchCategoryCount("Oriental", "cnt-oriental");
+    }
+
+    async function fetchCategoryCount(cat, elementId) {
         try {
-            const res = await fetch(`${FIREBASE_URL}.json`);
+            const catKey = getCatKey(cat);
+            const res = await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`);
             const data = await res.json();
-            const counterEl = document.getElementById('code-counter');
-            
-            if (!data) {
-                counterEl.textContent = "Códigos disponibles: 0";
-                return [];
-            }
-            
-            const availableKeys = Object.keys(data);
-            counterEl.textContent = `Códigos disponibles: ${availableKeys.length}`;
-            return availableKeys.map(key => ({ id: key, value: data[key] }));
-        } catch (err) {
-            document.getElementById('code-counter').textContent = "Error al conectar con la base de datos";
+            const count = data ? Object.keys(data).length : 0;
+            document.getElementById(elementId).textContent = count;
+            return data ? Object.keys(data).map(k => ({ id: k, value: data[k] })) : [];
+        } catch (e) {
+            document.getElementById(elementId).textContent = "0";
             return [];
         }
     }
 
-    async function requestCodes() {
-        const qty = parseInt(document.getElementById('code-qty').value);
+    async function reserveCodes(category) {
+        const qty = parseInt(document.getElementById('code-qty').value) || 1;
         const status = document.getElementById('user-status');
-        showStatus(status, "Procesando solicitud...", "success");
+        showStatus(status, "Buscando códigos disponibles...", "success");
 
-        const codes = await fetchCounter();
+        const catKey = getCatKey(category);
+        const codes = await fetchCategoryCount(category, getElementByCat(category));
 
         if (codes.length < qty) {
-            showStatus(status, `No hay suficientes códigos. Disponibles: ${codes.length}`, "error");
+            showStatus(status, `No hay suficientes códigos en ${category}. Disponibles: ${codes.length}`, "error");
             return;
         }
 
-        const selected = codes.slice(0, qty);
-        let messageText = `📲 *Solicitud de Códigos (${qty})*\n\n`;
+        currentCategory = category;
+        reservedItems = codes.slice(0, qty);
 
-        for (let i = 0; i < selected.length; i++) {
-            const item = selected[i];
+        document.getElementById('reserved-info').textContent = `${qty} código(s) reservado(s) [${category}]`;
+        document.getElementById('action-box').classList.remove('hidden');
+        showStatus(status, `Se reservaron ${qty} código(s). Toca el botón verde para enviar.`, "success");
+    }
+
+    function getElementByCat(cat) {
+        if (cat === "Occ. Baja") return "cnt-baja";
+        if (cat === "Occ. Alta") return "cnt-alta";
+        return "cnt-oriental";
+    }
+
+    function cancelReservation() {
+        reservedItems = [];
+        currentCategory = "";
+        document.getElementById('action-box').classList.add('hidden');
+        const status = document.getElementById('user-status');
+        showStatus(status, "Reserva cancelada", "error");
+    }
+
+    async function processAndSend() {
+        if (reservedItems.length === 0) return;
+
+        const status = document.getElementById('user-status');
+        showStatus(status, "Procesando y eliminando de la base de datos...", "success");
+
+        const catKey = getCatKey(currentCategory);
+        let messageText = `📲 *Solicitud de Códigos (${currentCategory})*\n\n`;
+
+        for (let i = 0; i < reservedItems.length; i++) {
+            const item = reservedItems[i];
             messageText += `Código ${i + 1}: \`${item.value}\`\n`;
-            
-            // Eliminar de Firebase
-            await fetch(`${FIREBASE_URL}/${item.id}.json`, { method: 'DELETE' });
+
+            // Borrar de Firebase
+            await fetch(`${FIREBASE_BASE_URL}/${catKey}/${item.id}.json`, { method: 'DELETE' });
         }
 
-        // 1. Enviar respaldo automático a Telegram
+        // 1. Enviar respaldo por Telegram
         try {
             await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -223,28 +334,32 @@
             });
         } catch(e) { console.error("Error Telegram", e); }
 
-        // 2. Abrir WhatsApp con el texto preescribido hacia tu número
+        // 2. Abrir WhatsApp
         const cleanMsg = encodeURIComponent(messageText.replace(/\*/g, '').replace(/`/g, ''));
         const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${cleanMsg}`;
         window.open(waUrl, '_blank');
 
-        showStatus(status, "¡Códigos extraídos correctamente! Se ha abierto WhatsApp.", "success");
-        fetchCounter();
+        showStatus(status, "¡Códigos enviados con éxito! Base de datos actualizada.", "success");
+        document.getElementById('action-box').classList.add('hidden');
+        reservedItems = [];
+        fetchAllCounters();
     }
 
     async function uploadCodes() {
+        const cat = document.getElementById('admin-category').value;
         const text = document.getElementById('bulk-codes').value.trim();
         const status = document.getElementById('admin-status');
-        
+
         if (!text) {
             showStatus(status, "Ingresa al menos un código", "error");
             return;
         }
 
+        const catKey = getCatKey(cat);
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
         for (const code of lines) {
-            await fetch(`${FIREBASE_URL}.json`, {
+            await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(code)
@@ -252,17 +367,20 @@
         }
 
         document.getElementById('bulk-codes').value = '';
-        showStatus(status, `Se cargaron ${lines.length} códigos con éxito`, "success");
-        fetchCounter();
+        showStatus(status, `Se cargaron ${lines.length} código(s) en ${cat}`, "success");
+        fetchAllCounters();
     }
 
-    async function clearAllCodes() {
-        if (!confirm("¿Seguro que deseas eliminar TODOS los códigos de la base de datos?")) return;
+    async function clearCategoryCodes() {
+        const cat = document.getElementById('admin-category').value;
+        if (!confirm(`¿Seguro que deseas eliminar TODOS los códigos de ${cat}?`)) return;
+
+        const catKey = getCatKey(cat);
         const status = document.getElementById('admin-status');
-        
-        await fetch(`${FIREBASE_URL}.json`, { method: 'DELETE' });
-        showStatus(status, "Base de datos vaciada", "error");
-        fetchCounter();
+
+        await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`, { method: 'DELETE' });
+        showStatus(status, `Se borraron los códigos de ${cat}`, "error");
+        fetchAllCounters();
     }
 
     function showStatus(element, msg, type) {
@@ -271,7 +389,6 @@
         element.classList.remove('hidden');
     }
 
-    // Service Worker para PWA
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('data:text/javascript,console.log("PWA SW activo")');
     }
