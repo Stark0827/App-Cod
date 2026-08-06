@@ -57,9 +57,9 @@
             margin-bottom: 15px;
         }
         .stat-box {
-            padding: 8px;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             text-align: center;
         }
@@ -67,7 +67,7 @@
         .box-alta { background-color: #f3e5f5; color: #7b1fa2; }
         .box-oriental { background-color: #e8f5e9; color: #2e7d32; }
         
-        input[type="password"], textarea, input[type="number"], select {
+        input[type="password"], textarea, select {
             width: 100%;
             padding: 12px;
             border: 1px solid #ccc;
@@ -79,14 +79,15 @@
         
         .cat-btn {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 10px;
+            font-size: 15px;
             font-weight: bold;
             color: white;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .btn-baja { background-color: #007bff; }
         .btn-alta { background-color: #6f42c1; }
@@ -102,7 +103,7 @@
         }
         
         .btn-process {
-            background-color: #17a2b8;
+            background-color: #25D366;
             color: white;
             width: 100%;
             padding: 12px;
@@ -124,8 +125,8 @@
             cursor: pointer;
             margin-top: 6px;
         }
-        .btn-admin-add { background-color: #28a745; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; }
-        .btn-admin-clear { background-color: #dc3545; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; }
+        .btn-admin-add { background-color: #28a745; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; font-weight: bold; }
+        .btn-admin-clear { background-color: #dc3545; color: white; width: 100%; padding: 10px; border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; font-weight: bold; }
         
         .hidden { display: none; }
         .status {
@@ -144,7 +145,7 @@
 
 <div class="card">
     <div class="banner">
-        📱 Para instalar como App en tu celular: Toca los 3 puntos u opciones de tu navegador y elige "Agregar a la pantalla de inicio".
+        📱 Para instalar como App: Abre el menú de tu navegador y selecciona "Agregar a la pantalla de inicio".
     </div>
 
     <h2>Gestor de Códigos ☁️</h2>
@@ -153,7 +154,7 @@
     <div id="login-screen">
         <p style="text-align: center; color: #666; font-size: 14px;">Ingresa tu clave de acceso:</p>
         <input type="password" id="access-key" placeholder="Contraseña">
-        <button class="cat-btn btn-baja" onclick="login()" style="margin-top: 12px;">Ingresar</button>
+        <button class="cat-btn btn-baja" onclick="login()">Ingresar</button>
         <div id="login-status" class="status hidden"></div>
     </div>
 
@@ -161,26 +162,25 @@
     <div id="main-screen" class="hidden">
         <!-- Estadísticas -->
         <div class="stats-grid">
-            <div class="stat-box box-baja">🌊 Occ. Baja: <span id="cnt-baja">0</span></div>
-            <div class="stat-box box-alta">⚡ Occ. Alta: <span id="cnt-alta">0</span></div>
-            <div class="stat-box box-oriental">👷 Oriental: <span id="cnt-oriental">0</span></div>
+            <div class="stat-box box-baja">🌊 Occ. Baja<br><span id="cnt-baja" style="font-size:18px;">0</span></div>
+            <div class="stat-box box-alta">⚡ Occ. Alta<br><span id="cnt-alta" style="font-size:18px;">0</span></div>
+            <div class="stat-box box-oriental">👷 Oriental<br><span id="cnt-oriental" style="font-size:18px;">0</span></div>
         </div>
 
-        <label style="font-size: 13px; font-weight: bold; color: #444;">🔢 Cantidad de códigos a solicitar:</label>
-        <input type="number" id="code-qty" value="1" min="1" max="10">
+        <p style="text-align: center; font-size: 13px; color: #555; margin-bottom: 5px;">Selecciona la categoría a solicitar:</p>
 
         <!-- Botones de Categorías -->
-        <button class="cat-btn btn-baja" onclick="reserveCodes('Occ. Baja')">🌊 Occ. Baja</button>
-        <button class="cat-btn btn-alta" onclick="reserveCodes('Occ. Alta')">⚡ Occ. Alta</button>
-        <button class="cat-btn btn-oriental" onclick="reserveCodes('Oriental')">👷 Oriental</button>
+        <button class="cat-btn btn-baja" onclick="reserveCode('Occ. Baja')">🌊 Pedir Occ. Baja</button>
+        <button class="cat-btn btn-alta" onclick="reserveCode('Occ. Alta')">⚡ Pedir Occ. Alta</button>
+        <button class="cat-btn btn-oriental" onclick="reserveCode('Oriental')">👷 Pedir Oriental</button>
 
         <!-- Área de Acción / Reserva -->
         <div id="action-box" class="action-box hidden">
             <div style="font-weight: bold; color: #333; font-size: 14px;">
-                🔑 <span id="reserved-info">0 código(s) reservado(s)</span>
+                🔑 <span id="reserved-info">Código listo para entregar</span>
             </div>
-            <button class="btn-process" onclick="processAndSend()">📱 Procesar y Enviar a WhatsApp y Telegram</button>
-            <button class="btn-cancel" onclick="cancelReservation()">✖ Cancelar Reserva</button>
+            <button class="btn-process" onclick="processAndSend()">📱 Solicitar por WhatsApp y Telegram</button>
+            <button class="btn-cancel" onclick="cancelReservation()">✖ Cancelar</button>
         </div>
 
         <div id="user-status" class="status hidden"></div>
@@ -197,7 +197,7 @@
                 <option value="Oriental">Oriental</option>
             </select>
 
-            <textarea id="bulk-codes" rows="5" placeholder="Pega los códigos aquí (uno por línea)..." style="margin-top:10px;"></textarea>
+            <textarea id="bulk-codes" rows="4" placeholder="Pega los códigos aquí (uno por línea)..."></textarea>
             <button class="btn-admin-add" onclick="uploadCodes()">Cargar Códigos a Firebase</button>
             <button class="btn-admin-clear" onclick="clearCategoryCodes()">Borrar Códigos de esta Categoría</button>
             <div id="admin-status" class="status hidden"></div>
@@ -206,22 +206,23 @@
 </div>
 
 <script>
-    // === CONFIGURACIÓN ===
+    // === CONFIGURACIÓN DE ACCESO Y CONTACTO ===
     const CLAVE_USUARIO = "1234";
     const CLAVE_ADMIN = "admin123";
     const NUMERO_WHATSAPP = "573015379493";
     
-    // Firebase URL base
+    // Base de Datos Firebase Realtime
     const FIREBASE_BASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com/codigos";
     
-    // Telegram Bot (Asegúrate de colocar tu Token y Chat ID correctos)
-    const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8"; // Tu token
-    const TELEGRAM_CHAT_ID = "6449886096";       // Tu Chat ID
+    // Telegram Bot
+    const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8"; // 
+    const TELEGRAM_CHAT_ID = "6449886096";       // 
 
-    let reservedItems = [];
+    let reservedItem = null;
     let currentCategory = "";
 
-    async function sendTelegramAlert(text) {
+    // Función para enviar notificaciones formateadas a Telegram
+    async function sendTelegramNotification(text) {
         if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("AAH...")) return;
         try {
             await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
@@ -233,21 +234,24 @@
                     parse_mode: 'Markdown'
                 })
             });
-        } catch(e) { console.error("Error al enviar alerta a Telegram", e); }
+        } catch(e) { 
+            console.error("Error al notificar a Telegram", e); 
+        }
     }
 
     async function login() {
         const inputKey = document.getElementById('access-key').value.trim();
         const status = document.getElementById('login-status');
+        const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
         if (inputKey === CLAVE_ADMIN) {
             document.getElementById('admin-panel').classList.remove('hidden');
-            await sendTelegramAlert("👑 *Aviso:* Se ha iniciado sesión como *Administrador* en la app.");
             showMainScreen();
+            await sendTelegramNotification(`👑 *ALERTA DE ACCESO*\n\nAcceso como *Administrador*\nHora: ${now}`);
         } else if (inputKey === CLAVE_USUARIO) {
             document.getElementById('admin-panel').classList.add('hidden');
-            await sendTelegramAlert("🔓 *Aviso:* Un usuario ha iniciado sesión en la app de códigos.");
             showMainScreen();
+            await sendTelegramNotification(`🔓 *ALERTA DE ACCESO*\n\nUn usuario ha ingresado a la app.\nHora: ${now}`);
         } else {
             showStatus(status, "Clave incorrecta", "error");
         }
@@ -267,24 +271,23 @@
     }
 
     async function fetchAllCounters() {
-        await fetchCategoryCount("Occ. Baja", "cnt-baja");
-        await fetchCategoryCount("Occ. Alta", "cnt-alta");
-        await fetchCategoryCount("Oriental", "cnt-oriental");
+        await fetchCategoryData("Occ. Baja", "cnt-baja");
+        await fetchCategoryData("Occ. Alta", "cnt-alta");
+        await fetchCategoryData("Oriental", "cnt-oriental");
     }
 
-    async function fetchCategoryCount(cat, elementId) {
+    async function fetchCategoryData(cat, elementId) {
         try {
             const catKey = getCatKey(cat);
-            // Intenta leer por categoría específica
+            // Intenta leer la subcarpeta de la categoría
             let res = await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`);
             let data = await res.json();
             
-            // Si la categoría específica está vacía, revisa si hay una lista general en la raíz de /codigos
+            // Si la subcarpeta no existe, busca en la raíz
             if (!data) {
                 const rootRes = await fetch(`${FIREBASE_BASE_URL}.json`);
                 const rootData = await rootRes.json();
                 if (rootData && typeof rootData === 'object') {
-                    // Filtrar claves que no correspondan a carpetas creadas
                     const keys = Object.keys(rootData).filter(k => k !== 'occ_baja' && k !== 'occ_alta' && k !== 'oriental');
                     if (cat === "Occ. Baja" && keys.length > 0) {
                         data = {};
@@ -297,6 +300,7 @@
             if (elementId && document.getElementById(elementId)) {
                 document.getElementById(elementId).textContent = count;
             }
+            
             return data ? Object.keys(data).map(k => ({ id: k, value: data[k] })) : [];
         } catch (e) {
             if (elementId && document.getElementById(elementId)) {
@@ -306,24 +310,23 @@
         }
     }
 
-    async function reserveCodes(category) {
-        const qty = parseInt(document.getElementById('code-qty').value) || 1;
+    async function reserveCode(category) {
         const status = document.getElementById('user-status');
-        showStatus(status, "Buscando códigos disponibles...", "success");
+        showStatus(status, "Obteniendo código disponible...", "success");
 
-        const codes = await fetchCategoryCount(category, getElementByCat(category));
+        const codes = await fetchCategoryData(category, getElementByCat(category));
 
-        if (codes.length < qty) {
-            showStatus(status, `No hay suficientes códigos en ${category}. Disponibles: ${codes.length}`, "error");
+        if (codes.length === 0) {
+            showStatus(status, `No hay códigos disponibles en ${category}.`, "error");
             return;
         }
 
         currentCategory = category;
-        reservedItems = codes.slice(0, qty);
+        reservedItem = codes[0]; // Toma el primer código disponible
 
-        document.getElementById('reserved-info').textContent = `${qty} código(s) reservado(s) [${category}]`;
+        document.getElementById('reserved-info').textContent = `1 Código disponible para [${category}]`;
         document.getElementById('action-box').classList.remove('hidden');
-        showStatus(status, `Se reservaron ${qty} código(s). Toca el botón para enviar.`, "success");
+        showStatus(status, `Código reservado. Presiona el botón verde para enviar.`, "success");
     }
 
     function getElementByCat(cat) {
@@ -333,7 +336,7 @@
     }
 
     function cancelReservation() {
-        reservedItems = [];
+        reservedItem = null;
         currentCategory = "";
         document.getElementById('action-box').classList.add('hidden');
         const status = document.getElementById('user-status');
@@ -341,36 +344,40 @@
     }
 
     async function processAndSend() {
-        if (reservedItems.length === 0) return;
+        if (!reservedItem) return;
 
         const status = document.getElementById('user-status');
-        showStatus(status, "Procesando y eliminando de la base de datos...", "success");
+        showStatus(status, "Procesando código...", "success");
 
         const catKey = getCatKey(currentCategory);
-        let messageText = `📲 *Solicitud de Códigos (${currentCategory})*\n\n`;
+        const codeValue = reservedItem.value;
+        const codeId = reservedItem.id;
 
-        for (let i = 0; i < reservedItems.length; i++) {
-            const item = reservedItems[i];
-            messageText += `Código ${i + 1}: \`${item.value}\`\n`;
-
-            // Elimina el código de la categoría o de la raíz según corresponda
-            let deleteRes = await fetch(`${FIREBASE_BASE_URL}/${catKey}/${item.id}.json`, { method: 'DELETE' });
-            if (!deleteRes.ok) {
-                await fetch(`${FIREBASE_BASE_URL}/${item.id}.json`, { method: 'DELETE' });
-            }
+        // Borra el código de Firebase
+        let deleteRes = await fetch(`${FIREBASE_BASE_URL}/${catKey}/${codeId}.json`, { method: 'DELETE' });
+        if (!deleteRes.ok) {
+            await fetch(`${FIREBASE_BASE_URL}/${codeId}.json`, { method: 'DELETE' });
         }
 
-        // 1. Enviar detalle del código por Telegram
-        await sendTelegramAlert(messageText);
+        // Mensaje formateado para Telegram
+        const telegramMsg = `📲 *SOLICITUD DE CÓDIGO*\n\n` +
+                            `📌 *Categoría:* ${currentCategory}\n` +
+                            `🔑 *Código:* \`${codeValue}\`\n\n` +
+                            `⚡ *Estado:* Entregado y eliminado de la base de datos.`;
 
-        // 2. Abrir WhatsApp
-        const cleanMsg = encodeURIComponent(messageText.replace(/\*/g, '').replace(/`/g, ''));
-        const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${cleanMsg}`;
+        // 1. Enviar aviso a Telegram
+        await sendTelegramNotification(telegramMsg);
+
+        // 2. Formato para WhatsApp
+        const waMsgText = `Hola, solicito el código para *${currentCategory}*:\n\n*Código:* ${codeValue}`;
+        const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(waMsgText)}`;
+        
+        // Abre WhatsApp
         window.open(waUrl, '_blank');
 
-        showStatus(status, "¡Códigos enviados con éxito!", "success");
+        showStatus(status, "¡Código procesado y enviado con éxito!", "success");
         document.getElementById('action-box').classList.add('hidden');
-        reservedItems = [];
+        reservedItem = null;
         fetchAllCounters();
     }
 
