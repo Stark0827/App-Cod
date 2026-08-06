@@ -206,7 +206,7 @@
 </div>
 
 <script>
-    // === CONFIGURACIÓN ===
+    // === CONFIGURACIÓN DE ACCESO Y CONTACTO ===
     const CLAVE_USUARIO = "1234";
     const CLAVE_ADMIN = "admin123";
     const NUMERO_WHATSAPP = "573015379493";
@@ -222,7 +222,6 @@
     let currentCategory = "";
     let currentUserType = "Usuario 🔑";
 
-    // Detectar si el usuario ingresa desde PC o Celular
     function getDeviceType() {
         const ua = navigator.userAgent;
         if (/android/i.test(ua)) return "Android 📱";
@@ -230,7 +229,6 @@
         return "PC 💻";
     }
 
-    // Obtener Fecha y Hora formateadas exactamente como en la foto
     function getFormattedDateTime() {
         const d = new Date();
         const fecha = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
@@ -306,30 +304,50 @@
         await fetchCategoryData("Oriental", "cnt-oriental");
     }
 
+    // Helper para verificar si un objeto de código está marcado como libre/usado
+    function isAvailable(item) {
+        if (typeof item === 'object' && item !== null) {
+            // Revisa campos posibles como 'usado' o 'estado'
+            const isUsed = item.usado === true || item.estado === true || item.usado === "true" || item.estado === "true";
+            return !isUsed;
+        }
+        // Si el valor guardado es una cadena de texto directa (un código simple), está disponible
+        return true;
+    }
+
+    function getCodeValue(item) {
+        if (typeof item === 'object' && item !== null) {
+            return item.codigo || item.value || JSON.stringify(item);
+        }
+        return item;
+    }
+
     async function fetchCategoryData(cat, elementId) {
         try {
             const catKey = getCatKey(cat);
             let res = await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`);
             let data = await res.json();
-            
-            if (!data) {
-                const rootRes = await fetch(`${FIREBASE_BASE_URL}.json`);
-                const rootData = await rootRes.json();
-                if (rootData && typeof rootData === 'object') {
-                    const keys = Object.keys(rootData).filter(k => k !== 'occ_baja' && k !== 'occ_alta' && k !== 'oriental');
-                    if (cat === "Occ. Baja" && keys.length > 0) {
-                        data = {};
-                        keys.forEach(k => data[k] = rootData[k]);
+
+            let availableCodes = [];
+
+            if (data && typeof data === 'object') {
+                Object.keys(data).forEach(k => {
+                    const item = data[k];
+                    if (isAvailable(item)) {
+                        availableCodes.push({
+                            id: k,
+                            value: getCodeValue(item),
+                            categoryKey: catKey
+                        });
                     }
-                }
+                });
             }
 
-            const count = data ? Object.keys(data).length : 0;
             if (elementId && document.getElementById(elementId)) {
-                document.getElementById(elementId).textContent = count;
+                document.getElementById(elementId).textContent = availableCodes.length;
             }
             
-            return data ? Object.keys(data).map(k => ({ id: k, value: data[k] })) : [];
+            return availableCodes;
         } catch (e) {
             if (elementId && document.getElementById(elementId)) {
                 document.getElementById(elementId).textContent = "0";
@@ -345,7 +363,7 @@
         const codes = await fetchCategoryData(category, getElementByCat(category));
 
         if (codes.length === 0) {
-            showStatus(status, `No hay códigos disponibles en ${category}.`, "error");
+            showStatus(status, `No hay códigos disponibles (no usados) en ${category}.`, "error");
             return;
         }
 
@@ -387,15 +405,16 @@
         const status = document.getElementById('user-status');
         showStatus(status, "Procesando código...", "success");
 
-        const catKey = getCatKey(currentCategory);
+        const catKey = reservedItem.categoryKey || getCatKey(currentCategory);
         const codeValue = reservedItem.value;
         const codeId = reservedItem.id;
 
-        // Borra el código de Firebase
-        let deleteRes = await fetch(`${FIREBASE_BASE_URL}/${catKey}/${codeId}.json`, { method: 'DELETE' });
-        if (!deleteRes.ok) {
-            await fetch(`${FIREBASE_BASE_URL}/${codeId}.json`, { method: 'DELETE' });
-        }
+        // Actualiza el estado del código a USADO o lo elimina del nodo activo
+        await fetch(`${FIREBASE_BASE_URL}/${catKey}/${codeId}.json`, { 
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usado: true, estado: true })
+        });
 
         // 1. Notificación enviada a Telegram
         const dateTime = getFormattedDateTime();
@@ -406,7 +425,7 @@
                             `📅 <b>Fecha y Hora:</b> ${dateTime}`;
         await sendTelegramNotification(telegramMsg);
 
-        // 2. Formato listo para WhatsApp
+        // 2. Formato para WhatsApp
         const waMsgText = `Hola, solicito el código para *${currentCategory}*:\n\n*Código:* ${codeValue}`;
         const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(waMsgText)}`;
         window.open(waUrl, '_blank');
@@ -434,7 +453,11 @@
             await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(code)
+                body: JSON.stringify({
+                    codigo: code,
+                    usado: false,
+                    estado: false
+                })
             });
         }
 
