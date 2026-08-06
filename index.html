@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Códigos Privado</title>
     
-    <!-- Vinculación al Manifest e Iconos PWA (Paso 3) -->
+    <!-- Vinculación al Manifest e Iconos PWA -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="512x512" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
@@ -429,6 +429,7 @@
             console.error("Error al actualizar en Firebase", e);
         }
 
+        // Notificación completa a Telegram
         const dateTime = getFormattedDateTime();
         const telegramMsg = `📲 <b>SOLICITUD DE CÓDIGO</b>\n\n` +
                             `📌 <b>Categoría:</b> ${currentCategory}\n` +
@@ -437,8 +438,8 @@
                             `📅 <b>Fecha y Hora:</b> ${dateTime}`;
         await sendTelegramNotification(telegramMsg);
 
-        const waMsgText = `Hola, solicito el código para *${currentCategory}*:\n\n*Código:* ${codeValue}`;
-        const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(waMsgText)}`;
+        // Envío por WhatsApp ÚNICAMENTE con el valor del código
+        const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(codeValue)}`;
         window.open(waUrl, '_blank');
 
         showStatus(status, "¡Código procesado y enviado con éxito!", "success");
