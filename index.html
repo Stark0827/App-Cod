@@ -192,9 +192,9 @@
             
             <label style="font-size: 12px; color: #666;">Selecciona la categoría para cargar:</label>
             <select id="admin-category">
-                <option value="Occ. Baja">Occ. Baja</option>
-                <option value="Occ. Alta">Occ. Alta</option>
-                <option value="Oriental">Oriental</option>
+                <option value="alta">Occ. Alta</option>
+                <option value="baja">Occ. Baja</option>
+                <option value="oriental">Oriental</option>
             </select>
 
             <textarea id="bulk-codes" rows="4" placeholder="Pega los códigos aquí (uno por línea)..."></textarea>
@@ -211,8 +211,8 @@
     const CLAVE_ADMIN = "admin123";
     const NUMERO_WHATSAPP = "573015379493";
     
-    // Base de Datos Firebase Realtime
-    const FIREBASE_BASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com/codigos";
+    // URL raíz de la Base de Datos Firebase Realtime
+    const FIREBASE_BASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com";
     
     // Telegram Bot
     const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8";
@@ -288,71 +288,65 @@
     function showMainScreen() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
-        fetchAllCounters();
+        fetchAllData();
     }
 
-    function getCatKey(cat) {
-        if (cat === "Occ. Baja") return "occ_baja";
-        if (cat === "Occ. Alta") return "occ_alta";
-        if (cat === "Oriental") return "oriental";
-        return "general";
+    // Normalizar tipos para evitar confusiones de nombres ("alta", "Occ. Alta", "occ_alta")
+    function matchCategory(tipoDB, targetCat) {
+        if (!tipoDB) return false;
+        const str = String(tipoDB).toLowerCase();
+        const target = String(targetCat).toLowerCase();
+
+        if (target.includes("alta")) return str.includes("alta");
+        if (target.includes("baja")) return str.includes("baja");
+        if (target.includes("oriental")) return str.includes("oriental");
+        return false;
     }
 
-    async function fetchAllCounters() {
-        await fetchCategoryData("Occ. Baja", "cnt-baja");
-        await fetchCategoryData("Occ. Alta", "cnt-alta");
-        await fetchCategoryData("Oriental", "cnt-oriental");
-    }
+    let allDatabaseItems = {};
 
-    // Helper para verificar si un objeto de código está marcado como libre/usado
-    function isAvailable(item) {
-        if (typeof item === 'object' && item !== null) {
-            // Revisa campos posibles como 'usado' o 'estado'
-            const isUsed = item.usado === true || item.estado === true || item.usado === "true" || item.estado === "true";
-            return !isUsed;
-        }
-        // Si el valor guardado es una cadena de texto directa (un código simple), está disponible
-        return true;
-    }
-
-    function getCodeValue(item) {
-        if (typeof item === 'object' && item !== null) {
-            return item.codigo || item.value || JSON.stringify(item);
-        }
-        return item;
-    }
-
-    async function fetchCategoryData(cat, elementId) {
+    async function fetchAllData() {
         try {
-            const catKey = getCatKey(cat);
-            let res = await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`);
+            // Lee toda la base de datos de raíz
+            let res = await fetch(`${FIREBASE_BASE_URL}/.json`);
             let data = await res.json();
+            
+            // Si los datos vienen dentro de un nodo '/codigos', lo extraemos
+            if (data && data.codigos) {
+                data = data.codigos;
+            }
 
-            let availableCodes = [];
+            allDatabaseItems = data || {};
+
+            let cntBaja = 0;
+            let cntAlta = 0;
+            let cntOriental = 0;
 
             if (data && typeof data === 'object') {
-                Object.keys(data).forEach(k => {
-                    const item = data[k];
-                    if (isAvailable(item)) {
-                        availableCodes.push({
-                            id: k,
-                            value: getCodeValue(item),
-                            categoryKey: catKey
-                        });
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    if (item && typeof item === 'object') {
+                        // Un código está disponible si 'usado' es false o no existe
+                        const isAvailable = (item.usado === false || item.usado === "false" || item.usado === undefined);
+                        
+                        if (isAvailable) {
+                            if (matchCategory(item.tipo, "baja")) cntBaja++;
+                            else if (matchCategory(item.tipo, "alta")) cntAlta++;
+                            else if (matchCategory(item.tipo, "oriental")) cntOriental++;
+                        }
                     }
                 });
             }
 
-            if (elementId && document.getElementById(elementId)) {
-                document.getElementById(elementId).textContent = availableCodes.length;
-            }
-            
-            return availableCodes;
+            document.getElementById('cnt-baja').textContent = cntBaja;
+            document.getElementById('cnt-alta').textContent = cntAlta;
+            document.getElementById('cnt-oriental').textContent = cntOriental;
+
         } catch (e) {
-            if (elementId && document.getElementById(elementId)) {
-                document.getElementById(elementId).textContent = "0";
-            }
-            return [];
+            console.error("Error leyendo Firebase", e);
+            document.getElementById('cnt-baja').textContent = "0";
+            document.getElementById('cnt-alta').textContent = "0";
+            document.getElementById('cnt-oriental').textContent = "0";
         }
     }
 
@@ -360,25 +354,38 @@
         const status = document.getElementById('user-status');
         showStatus(status, "Obteniendo código disponible...", "success");
 
-        const codes = await fetchCategoryData(category, getElementByCat(category));
+        await fetchAllData(); // Refrescar los datos actualizados
 
-        if (codes.length === 0) {
-            showStatus(status, `No hay códigos disponibles (no usados) en ${category}.`, "error");
+        let foundItem = null;
+        let foundKey = null;
+
+        Object.keys(allDatabaseItems).forEach(key => {
+            const item = allDatabaseItems[key];
+            if (item && typeof item === 'object') {
+                const isAvailable = (item.usado === false || item.usado === "false" || item.usado === undefined);
+                if (isAvailable && matchCategory(item.tipo, category)) {
+                    if (!foundItem) {
+                        foundItem = item;
+                        foundKey = key;
+                    }
+                }
+            }
+        });
+
+        if (!foundItem) {
+            showStatus(status, `No hay códigos disponibles en ${category}.`, "error");
             return;
         }
 
         currentCategory = category;
-        reservedItem = codes[0];
+        reservedItem = {
+            key: foundKey,
+            codigo: foundItem.texto || foundItem.codigo || foundItem.value || "S/N"
+        };
 
-        document.getElementById('reserved-info').textContent = `1 Código disponible para [${category}]`;
+        document.getElementById('reserved-info').textContent = `1 Código listo para [${category}]`;
         document.getElementById('action-box').classList.remove('hidden');
-        showStatus(status, `Código reservado. Presiona el botón verde para enviar.`, "success");
-    }
-
-    function getElementByCat(cat) {
-        if (cat === "Occ. Baja") return "cnt-baja";
-        if (cat === "Occ. Alta") return "cnt-alta";
-        return "cnt-oriental";
+        showStatus(status, `Código listo. Presiona el botón verde para solicitar.`, "success");
     }
 
     async function cancelReservation() {
@@ -403,18 +410,21 @@
         if (!reservedItem) return;
 
         const status = document.getElementById('user-status');
-        showStatus(status, "Procesando código...", "success");
+        showStatus(status, "Procesando código en la base de datos...", "success");
 
-        const catKey = reservedItem.categoryKey || getCatKey(currentCategory);
-        const codeValue = reservedItem.value;
-        const codeId = reservedItem.id;
+        const codeValue = reservedItem.codigo;
+        const dbKey = reservedItem.key;
 
-        // Actualiza el estado del código a USADO o lo elimina del nodo activo
-        await fetch(`${FIREBASE_BASE_URL}/${catKey}/${codeId}.json`, { 
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usado: true, estado: true })
-        });
+        // Actualiza el registro en Firebase marcando usado: true
+        try {
+            await fetch(`${FIREBASE_BASE_URL}/${dbKey}.json`, { 
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usado: true })
+            });
+        } catch(e) {
+            console.error("Error al actualizar en Firebase", e);
+        }
 
         // 1. Notificación enviada a Telegram
         const dateTime = getFormattedDateTime();
@@ -425,7 +435,7 @@
                             `📅 <b>Fecha y Hora:</b> ${dateTime}`;
         await sendTelegramNotification(telegramMsg);
 
-        // 2. Formato para WhatsApp
+        // 2. Formato para enviar por WhatsApp
         const waMsgText = `Hola, solicito el código para *${currentCategory}*:\n\n*Código:* ${codeValue}`;
         const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(waMsgText)}`;
         window.open(waUrl, '_blank');
@@ -433,11 +443,11 @@
         showStatus(status, "¡Código procesado y enviado con éxito!", "success");
         document.getElementById('action-box').classList.add('hidden');
         reservedItem = null;
-        fetchAllCounters();
+        fetchAllData();
     }
 
     async function uploadCodes() {
-        const cat = document.getElementById('admin-category').value;
+        const cat = document.getElementById('admin-category').value; // 'alta', 'baja', 'oriental'
         const text = document.getElementById('bulk-codes').value.trim();
         const status = document.getElementById('admin-status');
 
@@ -446,36 +456,41 @@
             return;
         }
 
-        const catKey = getCatKey(cat);
         const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
         for (const code of lines) {
-            await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`, {
+            await fetch(`${FIREBASE_BASE_URL}/.json`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    codigo: code,
-                    usado: false,
-                    estado: false
+                    texto: code,
+                    tipo: cat,
+                    usado: false
                 })
             });
         }
 
         document.getElementById('bulk-codes').value = '';
-        showStatus(status, `Se cargaron ${lines.length} código(s) en ${cat}`, "success");
-        fetchAllCounters();
+        showStatus(status, `Se cargaron ${lines.length} código(s) exitosamente.`, "success");
+        fetchAllData();
     }
 
     async function clearCategoryCodes() {
         const cat = document.getElementById('admin-category').value;
-        if (!confirm(`¿Seguro que deseas eliminar TODOS los códigos de ${cat}?`)) return;
+        if (!confirm(`¿Seguro que deseas eliminar los códigos de ${cat}?`)) return;
 
-        const catKey = getCatKey(cat);
         const status = document.getElementById('admin-status');
+        await fetchAllData();
 
-        await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`, { method: 'DELETE' });
-        showStatus(status, `Se borraron los códigos de ${cat}`, "error");
-        fetchAllCounters();
+        Object.keys(allDatabaseItems).forEach(async (key) => {
+            const item = allDatabaseItems[key];
+            if (item && matchCategory(item.tipo, cat)) {
+                await fetch(`${FIREBASE_BASE_URL}/${key}.json`, { method: 'DELETE' });
+            }
+        });
+
+        showStatus(status, `Limpieza completada en ${cat}`, "error");
+        setTimeout(fetchAllData, 1000);
     }
 
     function showStatus(element, msg, type) {
