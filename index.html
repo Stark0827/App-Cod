@@ -206,7 +206,7 @@
 </div>
 
 <script>
-    // === CONFIGURACIÓN DE ACCESO Y CONTACTO ===
+    // === CONFIGURACIÓN ===
     const CLAVE_USUARIO = "1234";
     const CLAVE_ADMIN = "admin123";
     const NUMERO_WHATSAPP = "573015379493";
@@ -215,15 +215,30 @@
     const FIREBASE_BASE_URL = "https://base-de-datos-codigos-c1bb1-default-rtdb.firebaseio.com/codigos";
     
     // Telegram Bot
-    const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8"; // 
-    const TELEGRAM_CHAT_ID = "6449886096";       // 
+    const TELEGRAM_TOKEN = "8759498141:AAHXZVSk7yX6iHsLJodEuh66bLdKO0Us7v8";
+    const TELEGRAM_CHAT_ID = "6449886096";
 
     let reservedItem = null;
     let currentCategory = "";
+    let currentUserType = "Usuario 🔑";
 
-    // Función para enviar notificaciones formateadas a Telegram
+    // Detectar si el usuario ingresa desde PC o Celular
+    function getDeviceType() {
+        const ua = navigator.userAgent;
+        if (/android/i.test(ua)) return "Android 📱";
+        if (/iPad|iPhone|iPod/i.test(ua)) return "iPhone 📱";
+        return "PC 💻";
+    }
+
+    // Obtener Fecha y Hora formateadas exactamente como en la foto
+    function getFormattedDateTime() {
+        const d = new Date();
+        const fecha = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+        const hora = d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).toLowerCase();
+        return `${fecha}.  ${hora}`;
+    }
+
     async function sendTelegramNotification(text) {
-        if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes("AAH...")) return;
         try {
             await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -231,27 +246,42 @@
                 body: JSON.stringify({
                     chat_id: TELEGRAM_CHAT_ID,
                     text: text,
-                    parse_mode: 'Markdown'
+                    parse_mode: 'HTML'
                 })
             });
         } catch(e) { 
-            console.error("Error al notificar a Telegram", e); 
+            console.error("Error al enviar notificación a Telegram", e); 
         }
     }
 
     async function login() {
         const inputKey = document.getElementById('access-key').value.trim();
         const status = document.getElementById('login-status');
-        const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+        const device = getDeviceType();
+        const dateTime = getFormattedDateTime();
 
         if (inputKey === CLAVE_ADMIN) {
+            currentUserType = "Administrador 🔑";
             document.getElementById('admin-panel').classList.remove('hidden');
             showMainScreen();
-            await sendTelegramNotification(`👑 *ALERTA DE ACCESO*\n\nAcceso como *Administrador*\nHora: ${now}`);
+            
+            const msg = `🚨 <b>NUEVO INGRESO A LA APP</b>\n\n` +
+                        `👤 <b>Acceso:</b> ${currentUserType}\n` +
+                        `💻 <b>Dispositivo:</b> ${device}\n` +
+                        `📅 <b>Fecha y Hora:</b> ${dateTime}`;
+            await sendTelegramNotification(msg);
+
         } else if (inputKey === CLAVE_USUARIO) {
+            currentUserType = "Usuario 🔑";
             document.getElementById('admin-panel').classList.add('hidden');
             showMainScreen();
-            await sendTelegramNotification(`🔓 *ALERTA DE ACCESO*\n\nUn usuario ha ingresado a la app.\nHora: ${now}`);
+
+            const msg = `🚨 <b>NUEVO INGRESO A LA APP</b>\n\n` +
+                        `👤 <b>Acceso:</b> ${currentUserType}\n` +
+                        `💻 <b>Dispositivo:</b> ${device}\n` +
+                        `📅 <b>Fecha y Hora:</b> ${dateTime}`;
+            await sendTelegramNotification(msg);
+
         } else {
             showStatus(status, "Clave incorrecta", "error");
         }
@@ -279,11 +309,9 @@
     async function fetchCategoryData(cat, elementId) {
         try {
             const catKey = getCatKey(cat);
-            // Intenta leer la subcarpeta de la categoría
             let res = await fetch(`${FIREBASE_BASE_URL}/${catKey}.json`);
             let data = await res.json();
             
-            // Si la subcarpeta no existe, busca en la raíz
             if (!data) {
                 const rootRes = await fetch(`${FIREBASE_BASE_URL}.json`);
                 const rootData = await rootRes.json();
@@ -322,7 +350,7 @@
         }
 
         currentCategory = category;
-        reservedItem = codes[0]; // Toma el primer código disponible
+        reservedItem = codes[0];
 
         document.getElementById('reserved-info').textContent = `1 Código disponible para [${category}]`;
         document.getElementById('action-box').classList.remove('hidden');
@@ -335,7 +363,17 @@
         return "cnt-oriental";
     }
 
-    function cancelReservation() {
+    async function cancelReservation() {
+        if (reservedItem) {
+            const dateTime = getFormattedDateTime();
+            const msg = `🔄 <b>CÓDIGOS CANCELADOS / LIBERADOS</b>\n\n` +
+                        `📌 <b>Categoría:</b> ${currentCategory}\n` +
+                        `🔢 <b>Cantidad:</b> 1\n` +
+                        `👤 <b>Acción por:</b> ${currentUserType}\n` +
+                        `📅 <b>Fecha:</b> ${dateTime}`;
+            await sendTelegramNotification(msg);
+        }
+
         reservedItem = null;
         currentCategory = "";
         document.getElementById('action-box').classList.add('hidden');
@@ -359,20 +397,18 @@
             await fetch(`${FIREBASE_BASE_URL}/${codeId}.json`, { method: 'DELETE' });
         }
 
-        // Mensaje formateado para Telegram
-        const telegramMsg = `📲 *SOLICITUD DE CÓDIGO*\n\n` +
-                            `📌 *Categoría:* ${currentCategory}\n` +
-                            `🔑 *Código:* \`${codeValue}\`\n\n` +
-                            `⚡ *Estado:* Entregado y eliminado de la base de datos.`;
-
-        // 1. Enviar aviso a Telegram
+        // 1. Notificación enviada a Telegram
+        const dateTime = getFormattedDateTime();
+        const telegramMsg = `📲 <b>SOLICITUD DE CÓDIGO</b>\n\n` +
+                            `📌 <b>Categoría:</b> ${currentCategory}\n` +
+                            `🔑 <b>Código:</b> <code>${codeValue}</code>\n` +
+                            `👤 <b>Pedido por:</b> ${currentUserType}\n` +
+                            `📅 <b>Fecha y Hora:</b> ${dateTime}`;
         await sendTelegramNotification(telegramMsg);
 
-        // 2. Formato para WhatsApp
+        // 2. Formato listo para WhatsApp
         const waMsgText = `Hola, solicito el código para *${currentCategory}*:\n\n*Código:* ${codeValue}`;
         const waUrl = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(waMsgText)}`;
-        
-        // Abre WhatsApp
         window.open(waUrl, '_blank');
 
         showStatus(status, "¡Código procesado y enviado con éxito!", "success");
